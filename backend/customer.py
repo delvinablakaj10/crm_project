@@ -23,6 +23,11 @@ class CRMBackend:
         self.df = pd.concat([self.df, pd.DataFrame([customer])], ignore_index=True)
         self.df.to_csv(self.file_path, index=False)
 
+    def update_customer(self, index, updated_data):
+        # Update the customer data at the given index
+        for key, value in updated_data.items():
+            self.df.at[index, key] = value
+
     def delete_customer(self, index):
         #Deletes a customer from the DataFrame
         self.df.drop(index, inplace=True)

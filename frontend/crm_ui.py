@@ -135,7 +135,12 @@ class CRMApp(App):
         self.table_layout.add_widget(row_buttons_layout)
 
     def add_customer(self, instance):
-        #Adds a new customer
+        # If editing, save the customer instead of adding a new one
+        if self.current_editing_row is not None:
+            self.save_customer()
+            return
+
+        # Adds a new customer
         customer_data = {key: self.inputs[key].text for key in self.inputs}
         if not customer_data['Name'] or not customer_data['Email']:
             print("Error: Name and Email must be provided.")
@@ -150,13 +155,14 @@ class CRMApp(App):
         self.refresh_customers()
 
     def save_customer(self):
-        #Saves changes to the customer currently being edited.
+        # Saves changes to the customer currently being edited
         if self.current_editing_row is not None:
             customer_data = {key: self.inputs[key].text for key in self.inputs}
             self.backend.update_customer(self.current_editing_row, customer_data)
             self.current_editing_row = None
             self.add_button.text = 'Add Customer'
             self.refresh_customers()
+
 
     def edit_customer(self, index):
         #Populates the form fields for editing an existing customer.
@@ -189,16 +195,30 @@ class CRMApp(App):
         self.scroll_view.add_widget(self.table_layout)
         self.layout.add_widget(top_spacer)  # Add the spacer to the layout
         self.layout.add_widget(self.scroll_view)
-    
+        
     def view_customers(self):
-        #Displays the customers in the table.
+        # Displays the customers in the table.
         self.table_layout.clear_widgets()
         headers = ['ID', 'Name', 'Email', 'Phone', 'Address', 'Company', 'Actions']
+        
         for header in headers:
+            # Create a label and center the text horizontally
+            label = Label(
+                text=header, 
+                bold=True, 
+                size_hint_y=None, 
+                height=50, 
+                valign='top', 
+                halign='center',  # Center the text horizontally
+                text_size=(None, None)  # Ensure the text resizes with the label
+            )
+            label.bind(size=label.setter('text_size'))  # Keep text within the widget size
+            self.table_layout.add_widget(label)
 
-            self.table_layout.add_widget(Label(text=header, bold=True))
+        # Add rows for customers
         for index, row in self.backend.df.iterrows():
             self.add_row(row, index)
+
 
     def filter_customers(self, instance, query):
         #Filters customers based on the search input and filter criteria.
